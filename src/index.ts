@@ -1,4 +1,3 @@
-import { Page } from 'puppeteer'
 import { PUPPETEER_LAUNCH_OPTIONS } from './config';
 import { getPageRef, screenshotBoundingRect } from './util'
 
