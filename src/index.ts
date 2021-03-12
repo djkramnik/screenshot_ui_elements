@@ -1,4 +1,5 @@
-import { JSHandle } from 'puppeteer';
+import * as path from 'path'
+import { ElementHandle } from 'puppeteer';
 import { PUPPETEER_LAUNCH_OPTIONS } from './config';
 import { getPageRef, screenshotBoundingRect } from './util'
 
@@ -18,22 +19,34 @@ const scriptArgs = {
 
   await page.goto(scriptArgs.url, {waitUntil: 'networkidle0'})
 
-  const elemCount = await page.evaluate((selector) => {
-    return document.querySelectorAll(selector).length
-  }, scriptArgs.selector)
-
-  for(let i = 0; i < elemCount; i++) {
-    const elemHandle: JSHandle<HTMLElement> = await page.evaluateHandle((index, selector) => {
-      return document.querySelectorAll(selector)[index]
-    }, i, scriptArgs.selector)
-    const elem = elemHandle.asElement()
-    if (elem === null) {
-      continue
+  const elementHandles = await page.$$(scriptArgs.selector)
+  const oldIndexes: Record<number, boolean> = {}
+  
+  async function screenShotElementsRecursively(handles: ElementHandle<Element>[], oldIndexes: Record<number, boolean>) {
+    console.log('beginning', Object.keys(oldIndexes).length)
+    for(let i = 0; i < handles.length; i++) {
+      if (i in oldIndexes) {
+        continue
+      }
+      const elem = elementHandles[i]
+      if (await elem?.isIntersectingViewport()) {
+        console.log('screenshot', i)
+        await elem.hover()
+        await elem.screenshot({path: path.join(__dirname, `../screenshots/screen_${i}.png`)})
+      }
+      oldIndexes[i] = true
     }
-    await elem.hover()
-    if (!elem.isIntersectingViewport()) {
-      continue
+    // at bottom? return
+    const isScrolledToBottom = await page.evaluate(() => {
+      return (window.innerHeight + window.pageYOffset) - document.body.offsetHeight < 10 // close enough
+    })
+    if (isScrolledToBottom) {
+      return
     }
-    await elem.screenshot({path: `screen_${i}.png`})
+    // not at bottom? scroll and recurse
+    await page.evaluate(() => {
+      window.scrollBy(0, window.innerHeight)
+    })
+    screenShotElementsRecursively(handles, oldIndexes)
   }
 })()
