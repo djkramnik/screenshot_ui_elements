@@ -1,11 +1,11 @@
-import { LaunchOptions, Page, launch } from "puppeteer"
+import { LaunchOptions, Page, launch, Browser } from "puppeteer"
 
-export const getPageRef = async (options: LaunchOptions) => {
+export const getPageRef = async (options: LaunchOptions): Promise<{page: Page, browser: Browser}> => {
   const browser = await launch(options)
   const page = await browser.newPage()
   page.setDefaultNavigationTimeout(0)
   page.setViewport({width: 1400, height: 1000})
-  return page
+  return {page, browser}
 }
 
 export async function screenshotBoundingRect({
