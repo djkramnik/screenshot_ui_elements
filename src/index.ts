@@ -1,8 +1,9 @@
+import { JSHandle } from 'puppeteer';
 import { PUPPETEER_LAUNCH_OPTIONS } from './config';
 import { getPageRef, screenshotBoundingRect } from './util'
 
 const defaultArgs = {
-  url: 'www.youtube.com',
+  url: 'https://youtube.com',
   selector: 'button',
 }
 
@@ -15,24 +16,24 @@ const scriptArgs = {
 
   const page = await getPageRef(PUPPETEER_LAUNCH_OPTIONS)
 
-  await page.goto(scriptArgs.url)
-  const boundingRectsForScreenshots = await page.evaluate(() => {
-    const boundingRectsInViewport = Array.from(
-      document.querySelectorAll(scriptArgs.selector)
-    ).reduce((boxes, elem) => {
-      const rect = elem.getBoundingClientRect()
-      const {top, left, bottom, right} = rect
-      const isInViewport = (
-        top >= 0 &&
-        left >= 0 &&
-        bottom <= window.innerHeight &&
-        right <= window.innerWidth
-      )
-      return isInViewport ? boxes.concat(rect) : boxes
-    }, [] as DOMRect[])
-    return boundingRectsInViewport
-  })
-  await Promise.all(boundingRectsForScreenshots.map((boundingRect, index) => {
-    return screenshotBoundingRect({page, boundingRect, path: `screen_${index}.png`, padding: 20})
-  }))
+  await page.goto(scriptArgs.url, {waitUntil: 'networkidle0'})
+
+  const elemCount = await page.evaluate((selector) => {
+    return document.querySelectorAll(selector).length
+  }, scriptArgs.selector)
+
+  for(let i = 0; i < elemCount; i++) {
+    const elemHandle: JSHandle<HTMLElement> = await page.evaluateHandle((index, selector) => {
+      return document.querySelectorAll(selector)[index]
+    }, i, scriptArgs.selector)
+    const elem = elemHandle.asElement()
+    if (elem === null) {
+      continue
+    }
+    await elem.hover()
+    if (!elem.isIntersectingViewport()) {
+      continue
+    }
+    await elem.screenshot({path: `screen_${i}.png`})
+  }
 })()
