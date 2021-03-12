@@ -2,6 +2,7 @@ import * as fs from 'fs'
 import * as path from 'path'
 
 const cachedDomains: string[] = []
+export const ROOT_PATH = path.join(__dirname, '../screenshots')
 
 // where url is https://{domain}.{tld}
 export function getDomainFromUrl(url: string): string {
@@ -19,7 +20,7 @@ export function prepareOutputDir(dirName: string) {
     return
   }
 
-  const susPath = path.join(__dirname, '../screenshot', dirName)
+  const susPath = path.join(ROOT_PATH, dirName)
   // if the path doesn't exist then create a directory in screenshots
   if (!fs.existsSync(susPath)) {
     fs.mkdirSync(susPath)

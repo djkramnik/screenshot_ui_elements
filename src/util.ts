@@ -2,6 +2,7 @@ import * as path from 'path'
 import {MAX_SCROLLS} from './config'
 import { LaunchOptions, Page, launch, Browser, ElementHandle } from "puppeteer"
 import { getScrollRecord, incrementScrollRecord } from './scrollhistory'
+import { ROOT_PATH } from './outputDir'
 
 export const getPageRef = async (options: LaunchOptions): Promise<{page: Page, browser: Browser}> => {
   const browser = await launch(options)
@@ -35,8 +36,10 @@ export async function screenShotElementsRecursively({
     if (await elem?.isIntersectingViewport()) {
       console.log('screenshot', siteSelectorKey, i)
       await elem.hover()
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      await elem.screenshot({path: path.join(__dirname, `../screenshots/${siteSelectorKey}_${i}.png`)})
+      await new Promise(resolve => setTimeout(resolve, 500))
+      await elem.screenshot({
+        path: path.join(ROOT_PATH, siteSelectorKey, `${i}.png`),
+      })
       oldIndexes[i] = true
     }
   }
