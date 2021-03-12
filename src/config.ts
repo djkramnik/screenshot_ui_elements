@@ -11,6 +11,8 @@ export const PUPPETEER_LAUNCH_OPTIONS: LaunchOptions = {
   defaultViewport: null,
 }
 
+export const MAX_SCROLLS = 5
+
 const selectors = [
   'button',
   'a',

@@ -1,4 +1,7 @@
-import { LaunchOptions, Page, launch, Browser } from "puppeteer"
+import * as path from 'path'
+import {MAX_SCROLLS} from './config'
+import { LaunchOptions, Page, launch, Browser, ElementHandle } from "puppeteer"
+import { getScrollRecord, incrementScrollRecord } from './scrollhistory'
 
 export const getPageRef = async (options: LaunchOptions): Promise<{page: Page, browser: Browser}> => {
   const browser = await launch(options)
@@ -8,26 +11,51 @@ export const getPageRef = async (options: LaunchOptions): Promise<{page: Page, b
   return {page, browser}
 }
 
-export async function screenshotBoundingRect({
+export async function screenShotElementsRecursively({
+  handles,
+  oldIndexes,
+  siteSelectorKey,
   page,
-  boundingRect,
-  padding = 0,
-  path,
 }: {
+  handles: ElementHandle<Element>[]
+  oldIndexes: Record<number, boolean>
+  siteSelectorKey: string
   page: Page
-  boundingRect: DOMRect
-  padding?: number
-  path: string
 }) {
-  const {x, y, width, height} = boundingRect
+  let scrollsPerformed = getScrollRecord(siteSelectorKey)
+  if (scrollsPerformed >= MAX_SCROLLS) {
+    return
+  }
 
-  return await page.screenshot({
-    path,
-    clip: {
-      x: x - padding,
-      y: y - padding,
-      width: width + padding * 2,
-      height: height + padding * 2
+  for(let i = 0; i < handles.length; i++) {
+    if (i in oldIndexes) {
+      continue
     }
-  });
+    const elem = handles[i]
+    if (await elem?.isIntersectingViewport()) {
+      console.log('screenshot', siteSelectorKey, i)
+      await elem.hover()
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      await elem.screenshot({path: path.join(__dirname, `../screenshots/${siteSelectorKey}_${i}.png`)})
+      oldIndexes[i] = true
+    }
+  }
+  // at bottom? return
+  const isScrolledToBottom = await page.evaluate(() => {
+    return (window.innerHeight + window.pageYOffset) - document.body.offsetHeight < 10 // close enough
+  })
+  
+  if (isScrolledToBottom) {
+    return
+  }
+
+  // not at bottom? scroll and recurse
+  await page.evaluate(() => {
+    window.scrollBy(0, window.innerHeight)
+  })
+  scrollsPerformed = incrementScrollRecord(siteSelectorKey)
+  if (scrollsPerformed >= MAX_SCROLLS) {
+    return
+  }
+  await screenShotElementsRecursively({handles, oldIndexes, siteSelectorKey, page})
 }
