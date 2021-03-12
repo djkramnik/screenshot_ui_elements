@@ -35,11 +35,23 @@ export async function screenShotElementsRecursively({
     const elem = handles[i]
     if (await elem?.isIntersectingViewport()) {
       console.log('screenshot', siteSelectorKey, i)
-      await elem.hover()
-      await new Promise(resolve => setTimeout(resolve, 500))
-      await elem.screenshot({
-        path: path.join(ROOT_PATH, siteSelectorKey, `${i}.png`),
-      })
+      try {
+        const boundingBox = await elem.boundingBox()
+        if (!boundingBox?.width) {
+          oldIndexes[i] = true
+          continue
+        }
+        await elem.hover()
+        await new Promise(resolve => setTimeout(resolve, 500))
+        await elem.screenshot({
+          path: path.join(ROOT_PATH, siteSelectorKey, `${i}.png`),
+        })
+      } catch(e) {
+        // swallow error
+        // I cant stop this code in the try block from occasionally throwing for reasons unknown
+        // if this happens we just dont get a screenshot for this element
+      }
+
       oldIndexes[i] = true
     }
   }

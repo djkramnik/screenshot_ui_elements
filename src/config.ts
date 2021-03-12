@@ -20,14 +20,14 @@ const selectors = [
 ]
 
 const urls = [
-  'https://youtube.com',
-  'https://google.com',
-  'https://replay.io',
-  'https://rottentomatoes.com',
-  'https://prodigygame.com',
-  'https://toronto.ca',
-  'https://espn.com',
-  'https://linkedin.com',
+  'https://www.youtube.com',
+  'https://www.google.com',
+  'https://www.replay.io',
+  'https://www.rottentomatoes.com',
+  'https://www.prodigygame.com',
+  'https://www.espn.com',
+  'https://www.toronto.ca',
+  'https://www.linkedin.com',
 ]
 
 export const playlist: SiteSelector[] = selectors.reduce((result: SiteSelector[], selector: string) => {

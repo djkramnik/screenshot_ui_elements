@@ -6,7 +6,8 @@ export const ROOT_PATH = path.join(__dirname, '../screenshots')
 
 // where url is https://{domain}.{tld}
 export function getDomainFromUrl(url: string): string {
-  const matchedUrl = url.match(/^https:\/\/(\w+)\.(\w+)$/)
+  const matchedUrl = url.replace('www.', '')
+    .match(/^https:\/\/(\w+)\.(\w+)$/)
   const domain = matchedUrl?.[1]
   if (!domain) {
     throw new Error('bad url or something')
