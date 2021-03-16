@@ -2,11 +2,26 @@
 <html>
   <head>
     <title>Viewer</title>
+    <style>
+      .sidebar {
+        width: 10vw;
+        height: 100vh;
+        padding: 20px;
+        background-color: cornsilk;
+        position: fixed;
+        right: 0;
+        top: 0;
+        display: none;
+      }
+    </style>
   </head>
   <body>
-    <ul className="fs">
-      
-    </ul>
+    <ul id="items"></ul>
+    <div id="sidebar" class="sidebar">
+      <button id="prev">prev</button>
+      <button id="next">next</button>
+      <button id="home">home</button>
+    </div>
     <script type="text/javascript" src="index.js"></script>
   </body>
 </html>
