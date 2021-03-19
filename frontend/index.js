@@ -49,7 +49,7 @@ function populateCategories(categories) {
 function createImageViewer(src) {
   const item = document.createElement('li')
   const imgBox = document.createElement('div')
-  imgBox.style = 'width:10vw;padding:10px;background-color:#333;'
+  imgBox.style = 'width:30vw;padding:10px;background-color:#333;'
   const img = document.createElement('img')
   img.style = `width:100%`
   img.src = src

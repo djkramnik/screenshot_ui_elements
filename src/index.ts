@@ -1,7 +1,7 @@
 import { PUPPETEER_LAUNCH_OPTIONS, SiteSelector } from './config';
 import { getDomainFromUrl, prepareOutputDir } from './outputDir';
 import { getPageRef, screenShotElementsRecursively } from './util'
-import * as playlist from '../playlist.json'
+import * as playlist from './playlist.json'
 
 const domainsAndSelectors: SiteSelector[] = playlist.selectors.reduce((result: SiteSelector[], selector: string) => {
   return result.concat(

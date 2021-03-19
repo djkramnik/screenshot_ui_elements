@@ -4,7 +4,7 @@ import { LaunchOptions, Page, launch, Browser, ElementHandle } from "puppeteer"
 import { getScrollRecord, incrementScrollRecord } from './scrollhistory'
 import { ROOT_PATH } from './outputDir'
 
-const padding = 10
+const padding = 2
 
 export const getPageRef = async (options: LaunchOptions): Promise<{page: Page, browser: Browser}> => {
   const browser = await launch(options)
