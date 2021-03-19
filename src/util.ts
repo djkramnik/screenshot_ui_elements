@@ -4,6 +4,8 @@ import { LaunchOptions, Page, launch, Browser, ElementHandle } from "puppeteer"
 import { getScrollRecord, incrementScrollRecord } from './scrollhistory'
 import { ROOT_PATH } from './outputDir'
 
+const padding = 10
+
 export const getPageRef = async (options: LaunchOptions): Promise<{page: Page, browser: Browser}> => {
   const browser = await launch(options)
   const page = await browser.newPage()
@@ -43,8 +45,14 @@ export async function screenShotElementsRecursively({
         }
         await elem.hover()
         await new Promise(resolve => setTimeout(resolve, 500))
-        await elem.screenshot({
+        const clip = {...boundingBox}
+        clip.x -= padding
+        clip.y -= padding
+        clip.width += padding * 2
+        clip.height += padding * 2
+        await page.screenshot({
           path: path.join(ROOT_PATH, siteSelectorKey, `${i}.png`),
+          clip,
         })
       } catch(e) {
         // swallow error
