@@ -81,3 +81,14 @@ export async function screenShotElementsRecursively({
   }
   await screenShotElementsRecursively({handles, oldIndexes, siteSelectorKey, page})
 }
+
+// expecting url of this format: https://www.flaticon.com/search/5?word=like
+export const mapFlatIconUrlToDomain = (url: string) => {
+  const searchTerm = url.slice(url.indexOf('=') - url.length + 1)
+  const page = url.match(/(\d)+/g)?.[0]
+  return `${searchTerm}_${page}`
+}
+
+export const getFlatIconKey = (domain: string) => {
+  return domain
+}

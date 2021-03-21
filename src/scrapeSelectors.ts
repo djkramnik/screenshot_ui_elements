@@ -12,14 +12,14 @@ const domainsAndSelectors: SiteSelector[] = playlist.selectors.reduce((result: S
   )
 }, [] as SiteSelector[])
 
-export const scrapeSelectors = async () => {
+export const scrapeSelectors = async (mapUrlToDomain?: Function, getKey?: Function) => {
   const {page, browser} = await getPageRef(PUPPETEER_LAUNCH_OPTIONS)
 
   for(let i = 0; i < domainsAndSelectors.length; i++) {
     const {url, selector} = domainsAndSelectors[i]
     // parse out the domain name and if its not a directory in screenshots then create it there
-    const domain = getDomainFromUrl(url)
-    const siteSelectorKey = `${domain}_${selector}`
+    const domain = (mapUrlToDomain ?? getDomainFromUrl)(url)
+    const siteSelectorKey = getKey ? getKey(domain, selector) : `${domain}_${selector}`
     prepareOutputDir(siteSelectorKey)
     await page.goto(url, {waitUntil: 'networkidle0'})
     const elementHandles = await page.$$(selector)

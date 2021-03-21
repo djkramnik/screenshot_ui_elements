@@ -1,5 +1,6 @@
 import {scrapeSelectors} from './scrapeSelectors'
+import {getFlatIconKey, mapFlatIconUrlToDomain} from './util'
 
 ;(async () => {
- await scrapeSelectors()
+ await scrapeSelectors(mapFlatIconUrlToDomain, getFlatIconKey)
 })()
