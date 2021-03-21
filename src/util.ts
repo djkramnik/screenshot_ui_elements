@@ -43,23 +43,22 @@ export async function screenShotElementsRecursively({
           oldIndexes[i] = true
           continue
         }
-        await elem.hover()
+        // await elem.hover()
         await new Promise(resolve => setTimeout(resolve, 500))
-        const clip = {...boundingBox}
-        clip.x -= padding
-        clip.y -= padding
-        clip.width += padding * 2
-        clip.height += padding * 2
-        await page.screenshot({
+        // const clip = {...boundingBox}
+        // clip.x -= padding
+        // clip.y -= padding
+        // clip.width += padding * 2
+        // clip.height += padding * 2
+        await elem.screenshot({
           path: path.join(ROOT_PATH, siteSelectorKey, `${i}.png`),
-          clip,
+          // clip,
         })
       } catch(e) {
         // swallow error
         // I cant stop this code in the try block from occasionally throwing for reasons unknown
         // if this happens we just dont get a screenshot for this element
       }
-
       oldIndexes[i] = true
     }
   }
