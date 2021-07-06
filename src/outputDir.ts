@@ -7,7 +7,7 @@ export const ROOT_PATH = path.join(__dirname, '../screenshots')
 // where url is https://{domain}.{tld}
 export function getDomainFromUrl(url: string): string {
   const matchedUrl = url.replace('www.', '')
-    .match(/^https:\/\/(\w+)\.(\w+)$/)
+    .match(/^https:\/\/(\w+)\.(\w+)(\?\w+=\w+)?(\&\w+=\w+)?$/)
   const domain = matchedUrl?.[1]
   if (!domain) {
     throw new Error('bad url or something')
@@ -15,6 +15,13 @@ export function getDomainFromUrl(url: string): string {
   return domain
 }
 
+export function getDirNameFromUrl(url: string): string {
+  const urlObj = new URL(url);
+  const {hostname, search} = urlObj;
+  const searchStr = search.replace(/([\?\&])/g, '');
+  
+  return `${hostname.replace(/\.\w+$/, '')}${searchStr ? '_' + searchStr : ''}`;
+}
 
 export function prepareOutputDir(dirName: string) {
   if (cachedDomains.includes(dirName)) {

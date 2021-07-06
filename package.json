@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "yarn tsc && node dist/index.js"
+    "start": "yarn tsc && node dist/index.js",
+    "purge": "rm -rf ./screenshots/*"
   },
   "author": "dkg",
   "license": "ISC",

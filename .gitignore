@@ -4,3 +4,4 @@ dist/
 screenshots/
 *.pem
 playlist.json
+.DS_Store

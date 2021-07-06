@@ -36,7 +36,6 @@ export async function screenShotElementsRecursively({
     }
     const elem = handles[i]
     if (await elem?.isIntersectingViewport()) {
-      console.log('screenshot', siteSelectorKey, i)
       try {
         const boundingBox = await elem.boundingBox()
         if (!boundingBox?.width) {
@@ -64,13 +63,14 @@ export async function screenShotElementsRecursively({
   }
   // at bottom? return
   const isScrolledToBottom = await page.evaluate(() => {
-    return (window.innerHeight + window.pageYOffset) - document.body.offsetHeight < 10 // close enough
+    document.body.style.height = 'auto'
+    return (window.innerHeight + window.pageYOffset) >= document.body.offsetHeight - 2 // close enough
   })
   
   if (isScrolledToBottom) {
     return
   }
-
+  console.log('apparently scrolling')
   // not at bottom? scroll and recurse
   await page.evaluate(() => {
     window.scrollBy(0, window.innerHeight)
