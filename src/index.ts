@@ -34,9 +34,11 @@ const takeSelectorScreenshotsFactory = (page: Page) => {
     url: string
   }) {
     await page.goto(url, {waitUntil: 'domcontentloaded'});
+    await sleep(1000);
     const handles = await page.$$(selector);
     // x, y, width, height
     let clipData: {[key: number]: PageOffsetEntry} = {};
+
     for (const handle of handles) {
       try {
         await handle.hover();
@@ -53,6 +55,7 @@ const takeSelectorScreenshotsFactory = (page: Page) => {
         }
   
         const {top, left, width, height} = el.getBoundingClientRect();
+
         if (!width || !height) {
           return null;
         }
@@ -68,12 +71,13 @@ const takeSelectorScreenshotsFactory = (page: Page) => {
         function isElementInViewport (el) {
           var rect = el.getBoundingClientRect();
         
-          return (
+          const result = (
             rect.top >= 0 &&
             rect.left >= 0 &&
             rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
             rect.right <= (window.innerWidth || document.documentElement.clientWidth)
           );
+          return result;
         }
       }, handle)
 
@@ -85,20 +89,19 @@ const takeSelectorScreenshotsFactory = (page: Page) => {
       // name the screenshot after the pageYOffset of the window
       // see if that already exists... if it does then concat the clip data
       // otherwise create a new entry
-      
       const pageYOffset = await page.evaluate(() => {
         return window.pageYOffset
       })
 
       if (pageYOffset in clipData) {
         // no need to take screenshot
-        clipData[pageYOffset].clipData.concat(rect);
+        clipData[pageYOffset].clipData = clipData[pageYOffset].clipData.concat(rect);
       } else {
         clipData[pageYOffset] = {
           fileName: path.join(dirName, `${pageYOffset}.png`),
           clipData: [rect],
         }; 
-        console.log('try', path.join(ROOT_PATH, clipData[pageYOffset].fileName))
+
         // must take screenshot
         await page.screenshot({
           path: path.join(ROOT_PATH, clipData[pageYOffset].fileName),
@@ -119,8 +122,7 @@ const takeSelectorScreenshotsFactory = (page: Page) => {
   const { page, browser } = await getPageRef(PUPPETEER_LAUNCH_OPTIONS)
   const takeSelectorScreenshots = takeSelectorScreenshotsFactory(page);
   const siteSelectors = getSiteSelectors(playlist)
-  console.log('yo', siteSelectors)
-  
+
   for(const {url, selectors} of siteSelectors) {
     for(const selector of selectors) {
       const dirName = getDirName({url, selector})
@@ -133,8 +135,8 @@ const takeSelectorScreenshotsFactory = (page: Page) => {
     }
   }
 
-  await browser.close();
-  process.exit(0);
+  // await browser.close();
+  // process.exit(0);
 })();
 
 function sleep(ms: number) {
