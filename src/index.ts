@@ -1,13 +1,26 @@
 import * as path from 'path';
+import * as fs from 'fs';
 import {Page} from 'puppeteer';
 import { PUPPETEER_LAUNCH_OPTIONS } from './config';
-import { prepareOutputDir } from './outputDir';
+import { prepareOutputDir, ROOT_PATH } from './outputDir';
 import { getPageRef } from './util';
 import * as playlist from './playlist.json'
 
 type SiteSelector = {
   url: string
   selectors: string[]
+}
+
+type ClipData = {
+  x: number
+  y: number
+  width: number
+  height: number
+}
+
+type PageOffsetEntry = {
+  fileName: string
+  clipData: ClipData[]
 }
 
 const takeSelectorScreenshotsFactory = (page: Page) => {
@@ -22,8 +35,8 @@ const takeSelectorScreenshotsFactory = (page: Page) => {
   }) {
     await page.goto(url, {waitUntil: 'domcontentloaded'});
     const handles = await page.$$(selector);
-    
-    let clipData: {[key: string]: {x: number, y: number, width: number, height: number}[]} = {}
+    // x, y, width, height
+    let clipData: {[key: number]: PageOffsetEntry} = {};
     for (const handle of handles) {
       try {
         await handle.hover();
@@ -76,52 +89,58 @@ const takeSelectorScreenshotsFactory = (page: Page) => {
       const pageYOffset = await page.evaluate(() => {
         return window.pageYOffset
       })
-      const entryKey = `${pageYOffset}.png`;
 
-      if (entryKey in clipData) {
-        clipData[entryKey] = clipData[entryKey].concat(rect);
+      if (pageYOffset in clipData) {
         // no need to take screenshot
+        clipData[pageYOffset].clipData.concat(rect);
       } else {
-        clipData[entryKey] = [rect];
+        clipData[pageYOffset] = {
+          fileName: path.join(dirName, `${pageYOffset}.png`),
+          clipData: [rect],
+        }; 
+        console.log('try', path.join(ROOT_PATH, clipData[pageYOffset].fileName))
         // must take screenshot
         await page.screenshot({
-          path: path.join(dirName, entryKey)
+          path: path.join(ROOT_PATH, clipData[pageYOffset].fileName),
         })
       }
     }
     // write clipData as a json file to dirName
+    try {
+      fs.writeFileSync(path.join(ROOT_PATH, dirName, 'data.json'), JSON.stringify(clipData))
+    } catch(e) {
+      console.log('error writing clip data', e)
+      return
+    }
   }
 }
 
 ;(async () => {
-  const { page } = await getPageRef(PUPPETEER_LAUNCH_OPTIONS)
+  const { page, browser } = await getPageRef(PUPPETEER_LAUNCH_OPTIONS)
   const takeSelectorScreenshots = takeSelectorScreenshotsFactory(page);
+  const siteSelectors = getSiteSelectors(playlist)
+  console.log('yo', siteSelectors)
+  
+  for(const {url, selectors} of siteSelectors) {
+    for(const selector of selectors) {
+      const dirName = getDirName({url, selector})
+      prepareOutputDir(dirName);
+      await takeSelectorScreenshots({
+        dirName: getDirName({url, selector}),
+        url,
+        selector,
+      })
+    }
+  }
 
+  await browser.close();
+  process.exit(0);
 })();
 
 function sleep(ms: number) {
   return new Promise(resolve => {
     setTimeout(resolve, ms)
   })  
-}
-
-async function processUrl({
-  siteSelector,
-  takeScreenshots
-}: {
-  siteSelector: SiteSelector
-  takeScreenshots: ({dirName, selector, url}: {dirName: string, selector: string, url: string}) => Promise<void>
-}) {
-  const {url, selectors} = siteSelector;
-  for (const selector of selectors) {
-    const dirName = getDirName({url, selector})
-    prepareOutputDir(dirName);
-    await takeScreenshots({
-      dirName,
-      selector,
-      url,
-    })
-  }
 }
 
 function getSiteSelectors(playlist: {urls: string[], selectors: string[]}): SiteSelector[] {
