@@ -27,5 +27,5 @@ def upload_file(file_name, bucket, object_name=None):
     return True
   
 dir_name = Path(__file__).resolve().parent
-local_path = os.path.join(dir_name, '../screenshots/browserdaemon_signup=1:button/0.png')
-upload_file(local_path, 'ui-dataset', 'screenshots/testink.png')
+local_path = os.path.join(dir_name, '../screenshots.zip')
+upload_file(local_path, 'ui-dataset', 'screenshots/testink.zip')
